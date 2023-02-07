@@ -16,6 +16,21 @@ contract insure {
  // function to chose an insurance 
  // function to set the date to insure  
 
+
+    struct RiskAsessor {
+        uint totalCoverProvided;
+        uint initialCoverCreationDate;
+    }
+    struct Protocol {
+        uint ID;
+        uint totalCover;
+        string protocolName;
+        string domainName;
+        string description;
+        mapping ( address => RiskAsessor) RiskAsessors;
+    }
+    mapping (uint => Protocol) allProtocols;
+
     function createNewInsure (string memory protocolName, uint percentage) public {
 
     }
@@ -25,6 +40,6 @@ contract insure {
     }
 
     function setercentage () public {
-        
+
     }
 }
