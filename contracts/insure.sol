@@ -16,6 +16,8 @@ contract insure {
  // function to chose an insurance 
  // function to set the date to insure  
 
+    
+
     function createNewInsure (string memory protocolName, uint percentage) public {
 
     }
@@ -25,6 +27,6 @@ contract insure {
     }
 
     function setercentage () public {
-        
+
     }
 }
