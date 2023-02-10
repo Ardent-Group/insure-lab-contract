@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
-import "./IERC20.sol";
+import "./interfaces/IERC20.sol";
+import "./interfaces/IGovernance.sol";
 
 contract insure {
 
@@ -8,8 +9,9 @@ contract insure {
     // CONSTRUCTOR
     // ============================
 
-    constructor () {
+    constructor (address _tokenAddress) {
         admin = msg.sender;
+        tokenAddress = _tokenAddress;
     }
     // ============================
     // STATE VARIABLE
@@ -18,6 +20,7 @@ contract insure {
     uint40 id = 1;
     address admin;
     address tokenAddress;
+    address goveranceAddress;
     uint8 constant VERY_LOW = 0;
     uint8 constant LOW = 20;
     uint8 constant MEDIUM = 40;
@@ -47,11 +50,13 @@ contract insure {
         uint ID;
         uint totalCover;
         uint coverLeft;
+        uint coverPaid;
         string protocolName;
         string domainName;
         RiskLevel risklevel;
-        mapping ( address => RiskAsessor) RiskAsessors;
+        address[] currentUsers;
         mapping (address => Users) UsersData;
+        mapping ( address => RiskAsessor) RiskAsessors;
     }
 
     Protocol[] allProtocols;
@@ -64,7 +69,7 @@ contract insure {
 
     event NewInsure (string protocolName, string protocolDomain, uint totalCoverCreated, address creatorAddress, RiskLevel _risklevel, uint creationTime);
     event AddOnExistingInsure (string protocolName, string protocolDomain, uint coverAdded, address creatorAddress, uint creationTime);
-    
+    event CoverBought (string protocol, uint totalCoverBought, uint amountPaid, uint totalPeriod,  RiskLevel _risklevel);
     // ***************** //
     
      // WRITE FUNCTIONS
@@ -151,13 +156,49 @@ contract insure {
         }
     }
 
-    function buyCover (uint _id,  
+    function buyCover (
+        uint _id,  
         uint _coverPeriod,
         uint _coverAmount) 
         public 
     {
+        Protocol storage Proto = AllProtocols[_id];
+        RiskLevel levelOfRisk = Proto.risklevel;
+        uint coverToPay = calculateCover(levelOfRisk, _coverPeriod, _coverAmount);
+        bool deposited = deposit(coverToPay);
+        require(deposited == true, "Deposit failed Insurance not created");
+        Proto.UsersData[msg.sender].totalCoverBought += _coverAmount;
+        Proto.coverLeft -= _coverAmount;
+        Proto.UsersData[msg.sender].dateBought += block.timestamp + (_coverPeriod * 1 days);
+        Proto.coverPaid += coverToPay;
+        Proto.currentUsers.push(msg.sender);
+        emit CoverBought(Proto.protocolName, _coverAmount, coverToPay, _coverPeriod, levelOfRisk);
+    }
+
+
+    function userRequestCover (uint _id,string memory _description) 
+        public 
+    {
+        Protocol storage Proto = AllProtocols[_id];
+        uint date = Proto.UsersData[msg.sender].dateBought;
+        require(date >= block.timestamp, "You can't claim cover, period over");
 
     }
+
+    /// @dev This is a funcion used to set token address and can be called only by the admin
+    function setTokenAddress (
+        address _tokenAddress) 
+        external 
+    {
+        onlyAdmin();
+        tokenAddress = _tokenAddress;
+    }
+
+
+    // ***************** //
+    // INTERNAL FUNCTIONS
+    // ***************** //
+
 
     /// @notice Function to deposit ERC20 token into the contract 
     /// @dev This is an internal funcion called by different functions to deposit ERC20 token into the contract 
@@ -168,7 +209,8 @@ contract insure {
          internal 
          returns (bool sent)
     {
-       sent = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
+        amountMustBeGreaterThanZero(_amount);
+        sent = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
     }
 
      /// @dev This is a private function used to allow only an admin call a function
@@ -184,16 +226,14 @@ contract insure {
         require(depositAddress != address(0));
     }
 
-     /// @dev This is a funcion used to set token address and can be called only by the admin
-    function setTokenAddress (
-        address _tokenAddress) 
-        external 
-    {
-        onlyAdmin();
-        tokenAddress = _tokenAddress;
+    /// @notice this is the internal function used to check that address must be greater than zero
+    /// @param _amount: this is the amount you want to check
+    function amountMustBeGreaterThanZero(uint _amount) internal pure {
+        require(_amount > 0, "Amount must be greater than zero");
     }
 
-   
+  
+    
 
 
 }
