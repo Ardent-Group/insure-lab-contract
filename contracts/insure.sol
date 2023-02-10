@@ -44,13 +44,15 @@ contract insure {
 
     struct Users {
         uint totalCoverBought;
+        uint covePaidFor;
         uint dateBought;
+        bool requestedCover;
     }
     struct Protocol {
         uint ID;
         uint totalCover;
         uint coverLeft;
-        uint coverPaid;
+        uint totalCoverPaid;
         string protocolName;
         string domainName;
         RiskLevel risklevel;
@@ -124,8 +126,81 @@ contract insure {
         emit AddOnExistingInsure(Proto.protocolName, Proto.domainName, _coverAmount, msg.sender, block.timestamp);
     }
 
-    
-    /// @notice Function is used to calculate the total cover for a user
+
+    /// @notice Function is called by users to buy cover
+    /// @dev This funciton is called by users to buy cover
+    /// @param _id: This is the ID of the Protocol cover that is been bought
+    /// @param _coverPeriod: This is the period a user is covering for
+    /// @param _coverAmount: This is the amount of cover the user is buying 
+
+    function buyCover (
+        uint _id,  
+        uint _coverPeriod,
+        uint _coverAmount) 
+        public 
+    {
+        Protocol storage Proto = AllProtocols[_id];
+        RiskLevel levelOfRisk = Proto.risklevel;
+        uint coverToPay = calculateCover(levelOfRisk, _coverPeriod, _coverAmount);
+        bool deposited = deposit(coverToPay);
+        require(deposited == true, "Deposit failed Insurance not created");
+        Proto.UsersData[msg.sender].totalCoverBought += _coverAmount;
+        Proto.coverLeft -= _coverAmount;
+        Proto.UsersData[msg.sender].dateBought += block.timestamp + (_coverPeriod * 1 days);
+        Proto.UsersData[msg.sender].covePaidFor += coverToPay;
+        Proto.totalCoverPaid += coverToPay;
+        Proto.UsersData[msg.sender].requestedCover = false;
+        Proto.currentUsers.push(msg.sender);
+        emit CoverBought(Proto.protocolName, _coverAmount, coverToPay, _coverPeriod, levelOfRisk);
+    }
+
+
+    /// @notice Function is called by users to request for their insurance cover when there is a protocol compromise
+    /// @dev This is a public funciton called by users to get their cover, this function calls another frunction from the governance called requestCoverClaim
+    /// @param _id: This is the ID of the Protocol cover that is been bought
+    /// @param _description: This is the reason given be the user to get their claims.
+
+    function userRequestCover (
+        uint _id,
+        string memory _description) 
+        public 
+    {
+        Protocol storage Proto = AllProtocols[_id];
+        uint date = Proto.UsersData[msg.sender].dateBought;
+        require(date >= block.timestamp, "You can't claim cover, period over");
+        require( Proto.UsersData[msg.sender].requestedCover == false, "You can't request twice");
+        uint _userCover = Proto.UsersData[msg.sender].totalCoverBought;
+        IGovernace(goveranceAddress).requestCoverClaim(_userCover, _description, Proto.protocolName, Proto.domainName, msg.sender);
+        Proto.UsersData[msg.sender].requestedCover = true;
+        Proto.coverLeft -=  _userCover;
+    }
+
+    /// @dev This is a funcion used to set token address and can be called only by the admin
+    function setTokenAddress (
+        address _tokenAddress) 
+        external 
+    {
+        onlyAdmin();
+        addressZeroCheck(_tokenAddress);
+        tokenAddress = _tokenAddress;
+    }
+
+    function setGovernanceAddress (
+        address _governanceAddress)
+        public 
+    {
+        onlyAdmin();
+        addressZeroCheck(_governanceAddress);
+        goveranceAddress =_governanceAddress;
+    }
+
+
+    // ***************** //
+    // INTERNAL FUNCTIONS
+    // ***************** //
+
+
+     /// @notice Function is used to calculate the total cover for a user
     /// @dev This funciton is a pure function that is called to calculate cover for a user
     /// @param _riskLevel: This is the level of risk involved for the user
     /// @param _coverPeriod: This is the period a user is covering for
@@ -135,7 +210,7 @@ contract insure {
         uint _coverPeriod,
         uint _coverAmount
      ) 
-        public 
+        internal 
         pure
         returns (uint cover)
     {
@@ -155,50 +230,6 @@ contract insure {
              cover = ((VERY_HIGH + 25) * (_coverPeriod * _coverAmount))/ (uint256(PERCENTAGE) * YEAR);
         }
     }
-
-    function buyCover (
-        uint _id,  
-        uint _coverPeriod,
-        uint _coverAmount) 
-        public 
-    {
-        Protocol storage Proto = AllProtocols[_id];
-        RiskLevel levelOfRisk = Proto.risklevel;
-        uint coverToPay = calculateCover(levelOfRisk, _coverPeriod, _coverAmount);
-        bool deposited = deposit(coverToPay);
-        require(deposited == true, "Deposit failed Insurance not created");
-        Proto.UsersData[msg.sender].totalCoverBought += _coverAmount;
-        Proto.coverLeft -= _coverAmount;
-        Proto.UsersData[msg.sender].dateBought += block.timestamp + (_coverPeriod * 1 days);
-        Proto.coverPaid += coverToPay;
-        Proto.currentUsers.push(msg.sender);
-        emit CoverBought(Proto.protocolName, _coverAmount, coverToPay, _coverPeriod, levelOfRisk);
-    }
-
-
-    function userRequestCover (uint _id,string memory _description) 
-        public 
-    {
-        Protocol storage Proto = AllProtocols[_id];
-        uint date = Proto.UsersData[msg.sender].dateBought;
-        require(date >= block.timestamp, "You can't claim cover, period over");
-
-    }
-
-    /// @dev This is a funcion used to set token address and can be called only by the admin
-    function setTokenAddress (
-        address _tokenAddress) 
-        external 
-    {
-        onlyAdmin();
-        tokenAddress = _tokenAddress;
-    }
-
-
-    // ***************** //
-    // INTERNAL FUNCTIONS
-    // ***************** //
-
 
     /// @notice Function to deposit ERC20 token into the contract 
     /// @dev This is an internal funcion called by different functions to deposit ERC20 token into the contract 

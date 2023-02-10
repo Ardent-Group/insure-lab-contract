@@ -8,19 +8,22 @@ contract Governance {
     // STATE VARIABLE
     // ============================
 
-    uint ID;
+    uint ID = 1;
     address admin;
     address tokenAddress;
 
-    struct claimRequests {
+    struct ClaimRequests {
         uint amountRequested;
         string description;
         string protocolName;
+        string protocolDomain;
         address claimer;
         uint claimRequestDate;
     }
 
-    
+    mapping (uint => ClaimRequests) Requests;
+    ClaimRequests[] allRequests;
+
 
     // ============================
     // CONSTRUCTOR
@@ -32,15 +35,35 @@ contract Governance {
     }
 
 
+    // ***************** //
+    
+     // WRITE FUNCTIONS
+    
+     // ***************** //
 
+    /// @notice Function is called by from the insurance contract when there is a request for cover
+    /// @dev This is funciton that allows the users from the insurance contract request for their claim
+    /// @param _amountRequest: This is the amount of cover requested from the user
+    /// @param _description: This is the reason given be the user to get their claims.
 
     function requestCoverClaim (
         uint _amountRequest,
         string memory _description,
-        string memory _protocolName )
+        string memory _protocolName,
+        string memory _protocolDomain,
+        address _claimerAddress)
         public 
     {
-
+        bool deposited = deposit(_amountRequest);
+        require(deposited == true, "Deposit failed claim request failed");
+        ClaimRequests storage claim = Requests[ID];
+        claim.amountRequested = _amountRequest;
+        claim.description = _description;
+        claim.protocolName = _protocolName;
+        claim.protocolDomain = _protocolDomain;
+        claim.claimRequestDate = block.timestamp;
+        claim.claimer = _claimerAddress;
+        allRequests.push(claim);
     }
 
 
