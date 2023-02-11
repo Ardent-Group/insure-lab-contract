@@ -9,8 +9,14 @@ contract Governance {
     // ============================
 
     uint ID = 1;
+    uint public totalDAOMembers;
+    uint public totalDAOFund;
+    uint public totalVotingPower;
+    uint public joinDAOMinimum;
+    uint public joinDAOMaximum;
     address admin;
     address tokenAddress;
+    address insuranceAddress;
 
     struct ClaimRequests {
         uint amountRequested;
@@ -19,8 +25,21 @@ contract Governance {
         string protocolDomain;
         address claimer;
         uint claimRequestDate;
+        address[] membersvoted;
+        uint totalVote;
+        bool claimable;
     }
 
+    struct DAOMembers {
+        uint Amount;
+        uint votePower;
+        bool joined;
+    }
+
+
+
+    mapping (address => DAOMembers) MemberData;
+    DAOMembers[] AllMembers;
     mapping (uint => ClaimRequests) Requests;
     ClaimRequests[] allRequests;
 
@@ -29,10 +48,24 @@ contract Governance {
     // CONSTRUCTOR
     // ============================
 
-    constructor (address _tokenAddress) {
+    constructor (
+        address _tokenAddress, 
+        address _insuranceAddress,
+        uint _minimumJoinDAO,
+        uint _maximumJoinDAO) {
         admin = msg.sender;
         tokenAddress = _tokenAddress;
+        insuranceAddress = _insuranceAddress;
+        joinDAOMinimum = _minimumJoinDAO;
+        joinDAOMaximum = _maximumJoinDAO;
     }
+
+
+     // =============================
+    //            EVENTS
+    // ==============================
+
+    event JoinedDAO (address member, uint amount);
 
 
     // ***************** //
@@ -40,6 +73,60 @@ contract Governance {
      // WRITE FUNCTIONS
     
      // ***************** //
+
+
+    /// @notice Function is called to join the DAO
+    /// @dev This funciton allows users to join DAO while depositing into the contract
+    /// @param _joinAmount: This is the amount the user is wiling to useto join the DAO
+  
+    function joinDAO (
+        uint _joinAmount
+    ) 
+        public 
+    {   
+        DAOMembers storage members = MemberData[msg.sender];
+        require(members.joined == false, "You have already joined DAO");
+        require(_joinAmount >= joinDAOMinimum && _joinAmount <= joinDAOMaximum, "You are not within the range of amount");
+        bool deposited = deposit(_joinAmount);
+        require(deposited == true, "Deposit couldn't join DAO");
+        members.Amount += _joinAmount;
+        members.joined = true;
+        uint votingPower = votePower(_joinAmount) / 1e6;
+        members.votePower = votingPower;
+        AllMembers.push(members);
+        totalDAOMembers++;  
+        totalDAOFund += _joinAmount;
+        totalVotingPower += votingPower;
+        emit JoinedDAO (msg.sender, _joinAmount);
+    }
+
+
+    function vote (
+        uint _id) 
+            public 
+    {
+        ClaimRequests storage claim = Requests[_id];
+        DAOMembers memory members = MemberData[msg.sender];
+        require(members.joined == true, "You are not a member of the DAO");
+        require(block.timestamp <= ( claim.claimRequestDate + 2 days), "Voting time over");
+        uint voteCount = members.Amount;
+        claim.totalVote += voteCount;
+        uint requireVote = claimRequiredVoting();
+        if (claim.totalVote >= requireVote) {
+            claim.claimable = true;
+        }
+    }
+
+    function withdrawInsurance (
+        uint _id, 
+        address user) 
+        public 
+    {
+
+    }
+
+
+
 
     /// @notice Function is called by from the insurance contract when there is a request for cover
     /// @dev This is funciton that allows the users from the insurance contract request for their claim
@@ -54,6 +141,7 @@ contract Governance {
         address _claimerAddress)
         public 
     {
+        onlyInsureContract();
         bool deposited = deposit(_amountRequest);
         require(deposited == true, "Deposit failed claim request failed");
         ClaimRequests storage claim = Requests[ID];
@@ -64,6 +152,33 @@ contract Governance {
         claim.claimRequestDate = block.timestamp;
         claim.claimer = _claimerAddress;
         allRequests.push(claim);
+        ID++;
+    }
+
+    function setMinimumToJoinDAO ( uint _minimumJoinDAO) 
+        public 
+    { 
+        onlyAdmin();
+        joinDAOMinimum = _minimumJoinDAO;
+    }
+
+    function setMaximumToJoinDAO (uint _maximumJoinDAO)
+        public
+    {
+        onlyAdmin();
+        joinDAOMaximum = _maximumJoinDAO;
+    }
+
+    function claimRequiredVoting () public view returns(uint result) {
+        result = (60 * totalVotingPower) / 100;
+    }
+
+    // ***************** //
+    // VIEW FUNCTIONS
+    // ***************** //
+
+    function votePower (uint bal) internal view returns (uint power) {
+        power = (bal * 1e6)/joinDAOMinimum;
     }
 
 
@@ -88,5 +203,18 @@ contract Governance {
     function amountMustBeGreaterThanZero(uint _amount) internal pure {
         require(_amount > 0, "Amount must be greater than zero");
     }
+
+    function onlyInsureContract () internal view{
+        require (msg.sender == insuranceAddress, "Only insurance contract can call this function");
+    }
+
+    /// @dev This is a private function used to allow only an admin call a function
+    function onlyAdmin () 
+        private 
+        view
+    {
+        require(msg.sender == admin, "Not admin");
+    }
+  
  
 }

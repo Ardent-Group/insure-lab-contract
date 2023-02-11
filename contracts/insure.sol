@@ -176,6 +176,24 @@ contract insure {
         Proto.coverLeft -=  _userCover;
     }
 
+    function riskassessorWithdrawProfit () 
+        public
+    {
+
+    }
+
+    function riskassessorWithdrawClaimBack() 
+        public
+    {
+
+    }
+
+    function riskassessor() 
+        public
+    {
+        
+    }
+
     /// @dev This is a funcion used to set token address and can be called only by the admin
     function setTokenAddress (
         address _tokenAddress) 
