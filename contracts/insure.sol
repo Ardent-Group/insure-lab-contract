@@ -20,6 +20,9 @@ contract insure {
     uint40 id = 1;
     address admin;
     address tokenAddress;
+    uint8 protocolFee = 2;
+    uint totalFeeGotten;
+    uint8 governanceFee = 3;
     address goveranceAddress;
     uint8 constant VERY_LOW = 0;
     uint8 constant LOW = 20;
@@ -180,6 +183,8 @@ contract insure {
         // Proto.coverLeft -=  _userCover;
     }
 
+    /// @notice Function is called by users after vote in governance to claim cover back
+    /// @dev This funciton makes use of in interface to call the userWithdrawInsurance function from the governance contract
     function userGetClaim (
         uint _idOfClaimRequests) 
         public 
@@ -187,6 +192,9 @@ contract insure {
          IGovernace(goveranceAddress).userWithdrawInsurance(_idOfClaimRequests);
     }
 
+    /// @notice Riskassessor calls thisfunction to get claim back if the user loses the claim in the governane contract
+    /// @dev This funciton calls the riskAssessorWithdrawInsurance function from the governance contract 
+    /// @param _idOfClaimRequests: This is the id of the claim; 
     function riskAssessorGetsClaimBack (
          uint _idOfClaimRequests) 
          public 
@@ -196,32 +204,56 @@ contract insure {
         Proto.coverLeft += _refund;
     }
 
-
+    /// @notice This funciton is called by the riskassessor to withdraw his profit 
+    /// @dev The risk assessor calls this function to withdraw profit from covers bought by the users
+    /// @param _id: This is the id of the claim; 
     function riskassessorWithdrawProfit (
         uint _id
     ) 
         public
     {
-         Protocol storage Proto = AllProtocols[_id];
+        Protocol storage Proto = AllProtocols[_id];
         uint totalclaimable = Proto.RiskAsessors[msg.sender].totalCoverProvided;
         uint totalclaim = Proto.totalCover;
         uint totalclaimPaid = Proto.totalCoverPaid;
         uint profitClaimable = (totalclaimable * totalclaimPaid) / totalclaim;
-        bool withdrawn = withdraw(msg.sender, profitClaimable);
+        uint _protocolfee = (profitClaimable * protocolFee) / 100;
+        uint _governanceFee = (governanceFee * profitClaimable) / 100;
+        uint profitSendable = profitClaimable - _protocolfee - _governanceFee;
+        bool withdrawn = withdraw(msg.sender, profitSendable);
         require(withdrawn == true, "Couldn't perform the transaction");
+        IGovernace(goveranceAddress).depositGovernanceFee(_governanceFee);
         Proto.RiskAsessors[msg.sender].totalCoverProvided = 0;
+        totalFeeGotten += _protocolfee;
     }
 
-    function riskassessorWithdrawClaimBack() 
-        public
-    {
 
+    function  withDrawFee (address _feeAddress) 
+        public 
+    {
+        onlyAdmin();
+        bool withdrawn = withdraw(_feeAddress, totalFeeGotten);
+        require(withdrawn == true, "Fee not withdrawn");
+        totalFeeGotten = 0;
     }
 
-    function riskassessor() 
+
+
+    function riskassessorWithdrawCover(uint _id) 
         public
     {
-
+        Protocol storage Proto = AllProtocols[_id];
+        uint depositDate = Proto.RiskAsessors[msg.sender].initialCoverCreationDate;
+        require (block.timestamp >= (depositDate + 30 days));
+        uint _totalCoverWithdrawable = Proto.coverLeft;
+        uint _totalCover = Proto.totalCover;
+        uint _riskAssessorCover = Proto.RiskAsessors[msg.sender].totalCoverProvided;
+        uint withdrawable = ( _riskAssessorCover * _totalCoverWithdrawable) / _totalCover;
+        bool withdrawn = withdraw(msg.sender, withdrawable);
+        require(withdrawn == true, "Couldn't withdraw cover provided");
+        Proto.coverLeft -= withdrawable;
+        Proto.totalCover -= withdrawable;
+        Proto.RiskAsessors[msg.sender].totalCoverProvided -= withdrawable;
     }
 
     /// @dev This is a funcion used to set token address and can be called only by the admin
@@ -233,6 +265,8 @@ contract insure {
         addressZeroCheck(_tokenAddress);
         tokenAddress = _tokenAddress;
     }
+
+    /// @dev This is a funcion used to set Governance contract address and can be called only by the admin
 
     function setGovernanceAddress (
         address _governanceAddress)
@@ -342,6 +376,10 @@ contract insure {
         sent = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
     }
 
+    /// @notice Function to withdraw ERC20 token from the contract 
+    /// @dev This is an internal funcion called by different functions to withdraw ERC20 token from the contract 
+    /// @return sent the return value if the token was sent succssfully
+ 
       function withdraw (
         address _to,
         uint _amount)
