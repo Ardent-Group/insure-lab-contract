@@ -144,6 +144,7 @@ contract insure {
         uint coverToPay = calculateCover(levelOfRisk, _coverPeriod, _coverAmount);
         bool deposited = deposit(coverToPay);
         require(deposited == true, "Deposit failed Insurance not created");
+        require(Proto.coverLeft >= _coverAmount, "Not enough cover left for you");
         Proto.UsersData[msg.sender].totalCoverBought += _coverAmount;
         Proto.coverLeft -= _coverAmount;
         Proto.UsersData[msg.sender].dateBought += block.timestamp + (_coverPeriod * 1 days);
@@ -193,6 +194,55 @@ contract insure {
         addressZeroCheck(_governanceAddress);
         goveranceAddress =_governanceAddress;
     }
+
+     // ***************** //
+    // VIEW FUNCTIONS
+    // ***************** //
+
+     /// @dev This is a view function that returns the risk asessor data
+    function viewRiskAssessorData (uint _id) 
+        public 
+        view 
+        returns 
+        (RiskAsessor memory) 
+    {
+        Protocol storage proto =  AllProtocols[_id];
+        return proto.RiskAsessors[msg.sender];
+    }
+
+
+     /// @dev This is a view function that returns the user data on certain protocol
+    function viewProtocolCoverUser (uint _id) 
+        public
+        view 
+        returns 
+        (Users memory)
+    {
+        Protocol storage proto =  AllProtocols[_id];
+        return proto.UsersData[msg.sender];
+    }
+
+     /// @dev This is a view function that returns all the users that bought cover in a protocol
+    function getAllUsersOfProtocol (uint _id)
+        public
+        view
+        returns
+        (address[] memory) 
+    {
+         Protocol storage proto =  AllProtocols[_id];
+         return proto.currentUsers;
+    }
+
+     /// @dev This is a view a view function that returns all the data of a protocol
+    function getProtocolData (uint _id)
+        public 
+        view
+        returns
+        (uint,uint, uint, uint, string memory, string memory)
+    {
+         Protocol storage proto =  AllProtocols[_id];
+         return (proto.ID, proto.totalCover, proto.coverLeft, proto.totalCoverPaid, proto.protocolName, proto.domainName);
+    }  
 
 
     // ***************** //
