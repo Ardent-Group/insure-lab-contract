@@ -23,8 +23,10 @@ contract Governance {
         string description;
         string protocolName;
         string protocolDomain;
+        address riskProvider;
         address claimer;
         uint claimRequestDate;
+        uint insuranceID;
         address[] membersvoted;
         uint totalVote;
         bool claimable;
@@ -109,6 +111,8 @@ contract Governance {
         DAOMembers memory members = MemberData[msg.sender];
         require(members.joined == true, "You are not a member of the DAO");
         require(block.timestamp <= ( claim.claimRequestDate + 2 days), "Voting time over");
+        bool voted = checkIfVoted(msg.sender, _id);
+        require(voted != true, "you can't vote twice");
         uint voteCount = members.Amount;
         claim.totalVote += voteCount;
         uint requireVote = claimRequiredVoting();
@@ -117,16 +121,29 @@ contract Governance {
         }
     }
 
-    function withdrawInsurance (
-        uint _id, 
-        address user) 
+    function userWithdrawInsurance (
+        uint _idClaimRequests) 
         public 
-    {
-
+    {   
+        onlyInsureContract();
+        ClaimRequests storage claim = Requests[_idClaimRequests];
+        require(claim.claimable == true, "You can't claim grant");
+        withdraw(claim.claimer, claim.amountRequested);
     }
 
-
-
+    function riskAssessorWithdrawInsurance (
+        uint _idClaimRequests) 
+        public 
+        returns (uint _insuranceID, uint refund)
+    {
+        onlyInsureContract();
+        ClaimRequests storage claim = Requests[_idClaimRequests];
+        require(block.timestamp >= ( claim.claimRequestDate + 2 days), "Voting time is not over");
+        require(claim.claimable == false, "You can't claim grant back");
+        withdraw(msg.sender, claim.amountRequested);
+        _insuranceID = claim.insuranceID;
+        refund = claim.amountRequested;
+    }
 
     /// @notice Function is called by from the insurance contract when there is a request for cover
     /// @dev This is funciton that allows the users from the insurance contract request for their claim
@@ -137,8 +154,9 @@ contract Governance {
         uint _amountRequest,
         string memory _description,
         string memory _protocolName,
-        string memory _protocolDomain,
-        address _claimerAddress)
+        address _riskProvider,
+        address _claimerAddress,
+        uint _insuranceID)
         public 
     {
         onlyInsureContract();
@@ -148,9 +166,10 @@ contract Governance {
         claim.amountRequested = _amountRequest;
         claim.description = _description;
         claim.protocolName = _protocolName;
-        claim.protocolDomain = _protocolDomain;
+        claim.riskProvider = _riskProvider;
         claim.claimRequestDate = block.timestamp;
         claim.claimer = _claimerAddress;
+        claim.insuranceID = _insuranceID;
         allRequests.push(claim);
         ID++;
     }
@@ -181,6 +200,21 @@ contract Governance {
         power = (bal * 1e6)/joinDAOMinimum;
     }
 
+    function checkIfVoted (
+        address _member,
+        uint _id) 
+        internal 
+        view
+        returns (bool status)
+    {
+        address[] memory voters = Requests[_id].membersvoted;
+        for (uint i = 0; i <  voters.length; i++) {
+            if (voters[i] == _member) {
+                status = true;
+            }
+        }
+    }
+
 
     // ***************** //
     // INTERNAL FUNCTIONS
@@ -197,6 +231,17 @@ contract Governance {
         amountMustBeGreaterThanZero(_amount);
         sent = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
     }
+
+    function withdraw (
+        address _to,
+        uint _amount)
+        private
+        returns (bool sent)
+    {
+        amountMustBeGreaterThanZero(_amount);
+        sent = IERC20(tokenAddress).transfer(_to, _amount);
+    }
+
 
     /// @notice this is the internal function used to check that address must be greater than zero
     /// @param _amount: this is the amount you want to check
