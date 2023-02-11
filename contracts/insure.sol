@@ -54,6 +54,7 @@ contract insure {
         uint coverLeft;
         uint totalCoverPaid;
         string protocolName;
+        address firstRiskProvider;
         string domainName;
         RiskLevel risklevel;
         address[] currentUsers;
@@ -98,11 +99,13 @@ contract insure {
         Proto.domainName = protocolDomain;
         Proto.totalCover += totalCoverAmount;
         Proto.risklevel = _risklevel;
+        Proto.firstRiskProvider = msg.sender;
         Proto.RiskAsessors[msg.sender].description = _description;
         Proto.RiskAsessors[msg.sender].totalCoverProvided = totalCoverAmount;
         Proto.RiskAsessors[msg.sender].initialCoverCreationDate = block.timestamp;
         // allProtocols.push(Proto);
         id+= 1;
+        // _mint(msg.sender, totalCoverAmount);
         emit NewInsure(protocolName, protocolDomain, totalCoverAmount, msg.sender, _risklevel, block.timestamp);
     }
 
@@ -171,15 +174,42 @@ contract insure {
         require(date >= block.timestamp, "You can't claim cover, period over");
         require( Proto.UsersData[msg.sender].requestedCover == false, "You can't request twice");
         uint _userCover = Proto.UsersData[msg.sender].totalCoverBought;
-        IGovernace(goveranceAddress).requestCoverClaim(_userCover, _description, Proto.protocolName, Proto.domainName, msg.sender);
+        IGovernace(goveranceAddress).requestCoverClaim(_userCover, _description, Proto.protocolName, Proto.firstRiskProvider, msg.sender, _id);
         Proto.UsersData[msg.sender].requestedCover = true;
-        Proto.coverLeft -=  _userCover;
+        Proto.UsersData[msg.sender].totalCoverBought = 0;
+        // Proto.coverLeft -=  _userCover;
     }
 
-    function riskassessorWithdrawProfit () 
+    function userGetClaim (
+        uint _idOfClaimRequests) 
+        public 
+    {
+         IGovernace(goveranceAddress).userWithdrawInsurance(_idOfClaimRequests);
+    }
+
+    function riskAssessorGetsClaimBack (
+         uint _idOfClaimRequests) 
+         public 
+    {
+        (uint insureId, uint _refund) =  IGovernace(goveranceAddress).riskAssessorWithdrawInsurance(_idOfClaimRequests);
+        Protocol storage Proto = AllProtocols[insureId];
+        Proto.coverLeft += _refund;
+    }
+
+
+    function riskassessorWithdrawProfit (
+        uint _id
+    ) 
         public
     {
-
+         Protocol storage Proto = AllProtocols[_id];
+        uint totalclaimable = Proto.RiskAsessors[msg.sender].totalCoverProvided;
+        uint totalclaim = Proto.totalCover;
+        uint totalclaimPaid = Proto.totalCoverPaid;
+        uint profitClaimable = (totalclaimable * totalclaimPaid) / totalclaim;
+        bool withdrawn = withdraw(msg.sender, profitClaimable);
+        require(withdrawn == true, "Couldn't perform the transaction");
+        Proto.RiskAsessors[msg.sender].totalCoverProvided = 0;
     }
 
     function riskassessorWithdrawClaimBack() 
@@ -191,7 +221,7 @@ contract insure {
     function riskassessor() 
         public
     {
-        
+
     }
 
     /// @dev This is a funcion used to set token address and can be called only by the admin
@@ -310,6 +340,16 @@ contract insure {
     {
         amountMustBeGreaterThanZero(_amount);
         sent = IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
+    }
+
+      function withdraw (
+        address _to,
+        uint _amount)
+        private
+        returns (bool sent)
+    {
+        amountMustBeGreaterThanZero(_amount);
+        sent = IERC20(tokenAddress).transfer(_to, _amount);
     }
 
      /// @dev This is a private function used to allow only an admin call a function
