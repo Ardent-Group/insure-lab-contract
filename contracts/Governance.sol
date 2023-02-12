@@ -308,6 +308,29 @@ contract Governance {
         return AllMembers;
     }
 
+    function memberViewData 
+        (address _memberAddress)
+        public 
+        view
+        returns
+        (DAOMembers memory)
+    {
+        DAOMembers memory member = MemberData[_memberAddress];
+        return member;
+    }
+
+
+    function viewIndividualClaim
+        (uint _claimID) 
+        public
+        view 
+        returns
+        (ClaimRequests memory)
+    {
+        ClaimRequests memory claim = Requests[_claimID];
+        return claim;
+    }
+
 
     // ***************** //
     // INTERNAL FUNCTIONS
