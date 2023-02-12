@@ -37,6 +37,8 @@ contract Governance {
         uint Amount;
         uint votePower;
         bool joined;
+        uint dateJoined;
+        uint newClaim;
     }
 
 
@@ -100,11 +102,15 @@ contract Governance {
         AllMembers.push(members);
         totalDAOMembers++;  
         totalDAOFund += _joinAmount;
+        members.dateJoined = block.timestamp;
         totalVotingPower += votingPower;
         MembersOfDAO.push(msg.sender);
         emit JoinedDAO (msg.sender, _joinAmount);
     }
 
+    /// @notice This function is called by the DAO membes to vote 
+    /// @dev This funciton is called there is a new cover clam requested by the insurance contract and users have to vote
+    /// @param _id: This parameter is passed in to check the position of the vote to b voted
 
     function vote (
         uint _id) 
@@ -124,6 +130,10 @@ contract Governance {
         }
     }
 
+    
+    /// @notice This function is called by the user to withdraw their claim
+    /// @dev This funciton is called by the insurance contract for usrs to withdraw their cover claim
+    /// @param _idClaimRequests: this is the ID of the request
     function userWithdrawInsurance (
         uint _idClaimRequests) 
         public 
@@ -134,6 +144,9 @@ contract Governance {
         withdraw(claim.claimer, claim.amountRequested);
     }
 
+    /// @notice This function is called by the risk assessor to withdraw the claim ifthe user loses the vote
+    /// @dev This funciton is called by the insurance contract for risk assessors to withdraw their cover claim if the user loses the claim vote
+    /// @param _idClaimRequests: this is the ID of the request
     function riskAssessorWithdrawInsurance (
         uint _idClaimRequests) 
         public 
@@ -148,7 +161,7 @@ contract Governance {
         refund = claim.amountRequested;
     }
 
-    /// @notice Function is called by from the insurance contract when there is a request for cover
+    /// @notice Function is called from the insurance contract when there is a request for cover
     /// @dev This is funciton that allows the users from the insurance contract request for their claim
     /// @param _amountRequest: This is the amount of cover requested from the user
     /// @param _description: This is the reason given be the user to get their claims.
@@ -177,13 +190,38 @@ contract Governance {
         ID++;
     }
 
-    function claimGovernanceFee
+    /// @notice Function is called by the DAO members to withdraw their funds
+    /// @dev This function is called by the members of the DAO to withdraw their funds from the DAO 
+    function memberWithdrawFunds
         () 
         public
     {
-        
+        DAOMembers storage member = MemberData[msg.sender];
+        require(block.timestamp >= (member.dateJoined + 30 days), "You can't wihdraw now");
+        bool withdrawn = withdraw(msg.sender, member.Amount);
+        require (withdrawn == true, "Couldn't withdraw the fund");
+        member.Amount = 0;
+        member.votePower = 0;
+        member.dateJoined = 0;
     } 
 
+    /// @notice Function is called by members of the Governance withdraw claims from the insurnaceFee as a reward
+    /// @dev Only DAO members can cal this function 
+    function claimGovernanceFee ()
+        public 
+    {
+        DAOMembers storage member = MemberData[msg.sender];
+        require(block.timestamp >= member.newClaim, "You can't claim now");
+        uint bal = member.Amount;
+        uint feeClaimable= (bal * totalGovernanceFee) / totalDAOFund;
+        bool claimed = withdraw(msg.sender, feeClaimable);
+        require(claimed == true, "You couldn't claim fee");
+        member.newClaim += block.timestamp + 30 days;
+
+    }
+
+    /// @notice Function is called by the insurance contract for deposit ofthe insuranceFee to the DAO
+    /// @dev Only the insurance contract can call this funcion  
     function depositGovernanceFee (
         uint _amount
     ) 
@@ -195,6 +233,7 @@ contract Governance {
         totalGovernanceFee += _amount;
     }
 
+     /// @dev This function is used to set the minmum amount to join the DAO
     function setMinimumToJoinDAO ( uint _minimumJoinDAO) 
         public 
     { 
@@ -202,6 +241,7 @@ contract Governance {
         joinDAOMinimum = _minimumJoinDAO;
     }
 
+     /// @dev This functin is used to set the maximum to join the DAO and can only be calld by the admin 
     function setMaximumToJoinDAO (uint _maximumJoinDAO)
         public
     {
@@ -209,15 +249,27 @@ contract Governance {
         joinDAOMaximum = _maximumJoinDAO;
     }
 
+    function withdrawCustomTokens(
+        uint _amount,
+        address _tokenAddress,
+        address _withDrawTo)
+        external
+    {
+        onlyAdmin();
+        IERC20(_tokenAddress).transfer(_withDrawTo, _amount);
+    }
+
    
     // ***************** //
     // VIEW FUNCTIONS
     // ***************** //
 
+    /// @dev This is an intenal function used to calculate the vote powe of the DAO members
     function votePower (uint bal) internal view returns (uint power) {
         power = (bal * 1e6)/joinDAOMinimum;
     }
 
+    /// @dev Used to check the if the DAO member has voted for a particular claim
     function checkIfVoted (
         address _member,
         uint _id) 
@@ -233,8 +285,27 @@ contract Governance {
         }
     }
 
+     /// @dev This is a view function that returns the minimum for a vote to pass and a user to get his claim 
      function claimRequiredVoting () public view returns(uint result) {
         result = (60 * totalVotingPower) / 100;
+    }
+
+    function viewAllClaimRequests () 
+        public 
+        view 
+        returns
+        (ClaimRequests[] memory)
+    {
+        return allRequests;
+    }
+
+    function viewAllDAOMembers ()
+        public 
+        view
+        returns
+        (DAOMembers[] memory)
+    {
+        return AllMembers;
     }
 
 
