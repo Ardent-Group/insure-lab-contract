@@ -1,18 +1,29 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
-  const lockedAmount = ethers.utils.parseEther("1");
+   // ******Deploying the USDT contract ****//
+   const USDT = await ethers.getContractFactory("USDT");
+   const usdt = await USDT.deploy();
+ 
+   await usdt.deployed();
+   console.log(`USDT deployed to ${usdt.address}`);
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  // ******Deploying the insurance contract ****//
+  const Insure = await ethers.getContractFactory("insure");
+  const insure = await Insure.deploy(usdt.address);
+  await insure.deployed();
 
-  await lock.deployed();
+  console.log(`Insurance contrat deployed to ${insure.address}`);
 
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+   // ******Deploying the Governance contract ****// 
+   const _minimumJoinDAO = 1e22
+   const _maximumJoinDAO = 1e23
+   const Governance = await ethers.getContractFactory("Governance");
+   const governance = await Governance.deploy(usdt.address, insure.address, _minimumJoinDAO, _maximumJoinDAO);
+   await governance.deployed();
+
+   console.log(`Insurance contrat deployed to ${governance.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
