@@ -14,6 +14,7 @@ contract Governance {
     uint public totalVotingPower;
     uint public joinDAOMinimum;
     uint public joinDAOMaximum;
+    uint totalGovernanceFee;
     address admin;
     address tokenAddress;
     address insuranceAddress;
@@ -41,6 +42,7 @@ contract Governance {
 
 
     mapping (address => DAOMembers) MemberData;
+    address[]  MembersOfDAO;
     DAOMembers[] AllMembers;
     mapping (uint => ClaimRequests) Requests;
     ClaimRequests[] allRequests;
@@ -99,6 +101,7 @@ contract Governance {
         totalDAOMembers++;  
         totalDAOFund += _joinAmount;
         totalVotingPower += votingPower;
+        MembersOfDAO.push(msg.sender);
         emit JoinedDAO (msg.sender, _joinAmount);
     }
 
@@ -174,6 +177,24 @@ contract Governance {
         ID++;
     }
 
+    function claimGovernanceFee
+        () 
+        public
+    {
+        
+    } 
+
+    function depositGovernanceFee (
+        uint _amount
+    ) 
+        external 
+    {
+        onlyInsureContract();
+        bool deposited = deposit(_amount);
+        require (deposited == true, "Governance fee not deposited");
+        totalGovernanceFee += _amount;
+    }
+
     function setMinimumToJoinDAO ( uint _minimumJoinDAO) 
         public 
     { 
@@ -188,10 +209,7 @@ contract Governance {
         joinDAOMaximum = _maximumJoinDAO;
     }
 
-    function claimRequiredVoting () public view returns(uint result) {
-        result = (60 * totalVotingPower) / 100;
-    }
-
+   
     // ***************** //
     // VIEW FUNCTIONS
     // ***************** //
@@ -213,6 +231,10 @@ contract Governance {
                 status = true;
             }
         }
+    }
+
+     function claimRequiredVoting () public view returns(uint result) {
+        result = (60 * totalVotingPower) / 100;
     }
 
 
