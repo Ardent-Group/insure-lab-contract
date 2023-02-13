@@ -290,6 +290,7 @@ contract Governance {
         result = (60 * totalVotingPower) / 100;
     }
 
+    /// @dev This function is used to view all the clams inthe contarct 
     function viewAllClaimRequests () 
         public 
         view 
@@ -299,6 +300,7 @@ contract Governance {
         return allRequests;
     }
 
+    /// @dev This function is used to view all the DAO members 
     function viewAllDAOMembers ()
         public 
         view
@@ -308,6 +310,7 @@ contract Governance {
         return AllMembers;
     }
 
+    /// @dev Each member of the DAO can call this function to view their data
     function memberViewData 
         (address _memberAddress)
         public 
@@ -319,7 +322,7 @@ contract Governance {
         return member;
     }
 
-
+    /// @dev This function is used to view each claim data
     function viewIndividualClaim
         (uint _claimID) 
         public
