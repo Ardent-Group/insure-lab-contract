@@ -42,7 +42,7 @@ contract insure {
     struct RiskAsessor {
         uint totalCoverProvided;
         uint initialCoverCreationDate;
-        string description;
+        uint lastWithdrawal;
     }
 
     struct Users {
@@ -59,6 +59,7 @@ contract insure {
         string protocolName;
         address firstRiskProvider;
         string domainName;
+        string description;
         RiskLevel risklevel;
         address[] currentUsers;
         mapping (address => Users) UsersData;
@@ -103,7 +104,7 @@ contract insure {
         Proto.totalCover += totalCoverAmount;
         Proto.risklevel = _risklevel;
         Proto.firstRiskProvider = msg.sender;
-        Proto.RiskAsessors[msg.sender].description = _description;
+        Proto.description = _description;
         Proto.RiskAsessors[msg.sender].totalCoverProvided = totalCoverAmount;
         Proto.RiskAsessors[msg.sender].initialCoverCreationDate = block.timestamp;
         // allProtocols.push(Proto);
@@ -118,15 +119,13 @@ contract insure {
     /// @param _coverAmount: Amount of cover created 
     function createOnExistinginsure (
         uint _id, 
-        uint _coverAmount,
-        string memory _description) 
+        uint _coverAmount) 
         public 
     {
         bool deposited = deposit(_coverAmount);
         require(deposited == true, "Deposit failed Insurance not created");
         Protocol storage Proto = AllProtocols[_id];
         Proto.totalCover += _coverAmount;
-        Proto.RiskAsessors[msg.sender].description = _description;
         Proto.RiskAsessors[msg.sender].totalCoverProvided += _coverAmount;
         Proto.RiskAsessors[msg.sender].initialCoverCreationDate = block.timestamp;
         emit AddOnExistingInsure(Proto.protocolName, Proto.domainName, _coverAmount, msg.sender, block.timestamp);
@@ -244,7 +243,9 @@ contract insure {
     {
         Protocol storage Proto = AllProtocols[_id];
         uint depositDate = Proto.RiskAsessors[msg.sender].initialCoverCreationDate;
+        uint _lastWithdrawal = Proto.RiskAsessors[msg.sender].lastWithdrawal;
         require (block.timestamp >= (depositDate + 30 days));
+        require (block.timestamp >= _lastWithdrawal);
         uint _totalCoverWithdrawable = Proto.coverLeft;
         uint _totalCover = Proto.totalCover;
         uint _riskAssessorCover = Proto.RiskAsessors[msg.sender].totalCoverProvided;
@@ -254,6 +255,7 @@ contract insure {
         Proto.coverLeft -= withdrawable;
         Proto.totalCover -= withdrawable;
         Proto.RiskAsessors[msg.sender].totalCoverProvided -= withdrawable;
+        Proto.RiskAsessors[msg.sender].lastWithdrawal += 30 days;
     }
 
     /// @dev This is a funcion used to set token address and can be called only by the admin
