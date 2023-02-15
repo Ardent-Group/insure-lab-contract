@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, run } from "hardhat";
 
 async function main() {
 
@@ -14,16 +14,46 @@ async function main() {
   const insure = await Insure.deploy(usdt.address);
   await insure.deployed();
 
-  console.log(`Insurance contrat deployed to ${insure.address}`);
+  console.log(`Insurance contract deployed to ${insure.address}`);
 
    // ******Deploying the Governance contract ****// 
-   const _minimumJoinDAO = 1e22
-   const _maximumJoinDAO = 1e23
+   const _minimumJoinDAO = BigInt(1e22)
+   const _maximumJoinDAO = BigInt(1e23)
    const Governance = await ethers.getContractFactory("Governance");
    const governance = await Governance.deploy(usdt.address, insure.address, _minimumJoinDAO, _maximumJoinDAO);
    await governance.deployed();
 
-   console.log(`Insurance contrat deployed to ${governance.address}`);
+   console.log(`Governance contract deployed to ${governance.address}`);
+
+
+
+  //  Verify contract
+  console.log(`Verifying mocked USDT.....`)
+  await run("verify:verify", {
+    address: usdt.address,
+    constructorArguments: []
+  });
+  console.log(`Verified mocked USDT`);
+
+  console.log(`Verifying InsureLab Contract.....`);
+  await run("verify:verify", {
+    address: insure.address,
+    constructorArguments: [
+      usdt.address
+    ]
+  });
+  console.log(`Verified InsureLab Contract`);
+  console.log(`Verifying Governance contract......`)
+  await run("verify:verify", {
+    address: governance.address,
+    constructorArguments: [
+      usdt.address,
+      insure.address,
+      _minimumJoinDAO,
+      _maximumJoinDAO,
+    ],
+  })
+  
 }
 
 // We recommend this pattern to be able to use async/await everywhere

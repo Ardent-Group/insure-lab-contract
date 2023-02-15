@@ -17,7 +17,7 @@ contract insure {
     // STATE VARIABLE
     // ============================
 
-    uint40 id = 1;
+    uint40 public id = 1;
     address admin;
     address tokenAddress;
     uint8 protocolFee = 2;
@@ -66,7 +66,6 @@ contract insure {
         mapping ( address => RiskAsessor) RiskAsessors;
     }
 
-    Protocol[] allProtocols;
     mapping (uint => Protocol) AllProtocols;
 
 
@@ -74,7 +73,7 @@ contract insure {
     //            EVENTS
     // =============================
 
-    event NewInsure (string protocolName, string protocolDomain, uint totalCoverCreated, address creatorAddress, RiskLevel _risklevel, uint creationTime);
+    event NewInsure (string protocolName, string protocolDomain, uint totalCoverCreated, address creatorAddress, RiskLevel _risklevel, uint creationTime, uint _protocolID);
     event AddOnExistingInsure (string protocolName, string protocolDomain, uint coverAdded, address creatorAddress, uint creationTime);
     event CoverBought (string protocol, uint totalCoverBought, uint amountPaid, uint totalPeriod,  RiskLevel _risklevel);
     // ***************** //
@@ -94,7 +93,7 @@ contract insure {
         string memory _description,
         uint totalCoverAmount,
         RiskLevel _risklevel) 
-        public 
+        external 
     {
         bool deposited = deposit(totalCoverAmount);
         require(deposited == true, "Deposit failed Insurance not created");
@@ -105,12 +104,13 @@ contract insure {
         Proto.risklevel = _risklevel;
         Proto.firstRiskProvider = msg.sender;
         Proto.description = _description;
+        Proto.ID = id;
         Proto.RiskAsessors[msg.sender].totalCoverProvided = totalCoverAmount;
         Proto.RiskAsessors[msg.sender].initialCoverCreationDate = block.timestamp;
-        // allProtocols.push(Proto);
+        
+        emit NewInsure(protocolName, protocolDomain, totalCoverAmount, msg.sender, _risklevel, block.timestamp, id);
+
         id+= 1;
-        // _mint(msg.sender, totalCoverAmount);
-        emit NewInsure(protocolName, protocolDomain, totalCoverAmount, msg.sender, _risklevel, block.timestamp);
     }
 
     /// @notice Function allows new rsk assessors add more cover for existing protocol insurance
@@ -120,7 +120,7 @@ contract insure {
     function createOnExistinginsure (
         uint _id, 
         uint _coverAmount) 
-        public 
+        external 
     {
         bool deposited = deposit(_coverAmount);
         require(deposited == true, "Deposit failed Insurance not created");
@@ -142,7 +142,7 @@ contract insure {
         uint _id,  
         uint _coverPeriod,
         uint _coverAmount) 
-        public 
+        external
     {
         Protocol storage Proto = AllProtocols[_id];
         RiskLevel levelOfRisk = Proto.risklevel;
@@ -169,7 +169,7 @@ contract insure {
     function userRequestCover (
         uint _id,
         string memory _description) 
-        public 
+        external
     {
         Protocol storage Proto = AllProtocols[_id];
         uint date = Proto.UsersData[msg.sender].dateBought;
@@ -186,7 +186,7 @@ contract insure {
     /// @dev This funciton makes use of in interface to call the userWithdrawInsurance function from the governance contract
     function userGetClaim (
         uint _idOfClaimRequests) 
-        public 
+        external 
     {
          IGovernace(goveranceAddress).userWithdrawInsurance(_idOfClaimRequests);
     }
@@ -196,7 +196,7 @@ contract insure {
     /// @param _idOfClaimRequests: This is the id of the claim; 
     function riskAssessorGetsClaimBack (
          uint _idOfClaimRequests) 
-         public 
+         external 
     {
         (uint insureId, uint _refund) =  IGovernace(goveranceAddress).riskAssessorWithdrawInsurance(_idOfClaimRequests);
         Protocol storage Proto = AllProtocols[insureId];
@@ -209,7 +209,7 @@ contract insure {
     function riskassessorWithdrawProfit (
         uint _id
     ) 
-        public
+        external
     {
         Protocol storage Proto = AllProtocols[_id];
         uint totalclaimable = Proto.RiskAsessors[msg.sender].totalCoverProvided;
@@ -228,7 +228,7 @@ contract insure {
 
 
     function  withDrawFee (address _feeAddress) 
-        public 
+        external 
     {
         onlyAdmin();
         bool withdrawn = withdraw(_feeAddress, totalFeeGotten);
@@ -239,7 +239,7 @@ contract insure {
 
 
     function riskassessorWithdrawCover(uint _id) 
-        public
+        external
     {
         Protocol storage Proto = AllProtocols[_id];
         uint depositDate = Proto.RiskAsessors[msg.sender].initialCoverCreationDate;
@@ -272,7 +272,7 @@ contract insure {
 
     function setGovernanceAddress (
         address _governanceAddress)
-        public 
+        external 
     {
         onlyAdmin();
         addressZeroCheck(_governanceAddress);
@@ -285,7 +285,7 @@ contract insure {
 
      /// @dev This is a view function that returns the risk asessor data
     function viewRiskAssessorData (uint _id) 
-        public 
+        external 
         view 
         returns 
         (RiskAsessor memory) 
@@ -297,7 +297,7 @@ contract insure {
 
      /// @dev This is a view function that returns the user data on certain protocol
     function viewProtocolCoverUser (uint _id) 
-        public
+        external
         view 
         returns 
         (Users memory)
@@ -308,7 +308,7 @@ contract insure {
 
      /// @dev This is a view function that returns all the users that bought cover in a protocol
     function getAllUsersOfProtocol (uint _id)
-        public
+        external
         view
         returns
         (address[] memory) 
@@ -319,13 +319,13 @@ contract insure {
 
      /// @dev This is a view a view function that returns all the data of a protocol
     function getProtocolData (uint _id)
-        public 
+        external 
         view
         returns
-        (uint,uint, uint, uint, string memory, string memory)
+        (uint,uint, uint, uint, string memory, string memory, string memory, RiskLevel)
     {
          Protocol storage proto =  AllProtocols[_id];
-         return (proto.ID, proto.totalCover, proto.coverLeft, proto.totalCoverPaid, proto.protocolName, proto.domainName);
+         return (proto.ID, proto.totalCover, proto.coverLeft, proto.totalCoverPaid, proto.protocolName, proto.domainName, proto.description, proto.risklevel);
     }  
 
 
