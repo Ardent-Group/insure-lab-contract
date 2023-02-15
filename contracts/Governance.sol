@@ -141,7 +141,9 @@ contract Governance {
         onlyInsureContract();
         ClaimRequests storage claim = Requests[_idClaimRequests];
         require(claim.claimable == true, "You can't claim grant");
-        withdraw(claim.claimer, claim.amountRequested);
+        claim.amountRequested = 0;
+        uint _withdraw = claim.amountRequested;
+        withdraw(claim.claimer, _withdraw);
     }
 
     /// @notice This function is called by the risk assessor to withdraw the claim ifthe user loses the vote
@@ -198,11 +200,12 @@ contract Governance {
     {
         DAOMembers storage member = MemberData[msg.sender];
         require(block.timestamp >= (member.dateJoined + 30 days), "You can't wihdraw now");
-        bool withdrawn = withdraw(msg.sender, member.Amount);
-        require (withdrawn == true, "Couldn't withdraw the fund");
+        uint _withdraw = member.Amount;
         member.Amount = 0;
         member.votePower = 0;
         member.dateJoined = 0;
+        bool withdrawn = withdraw(msg.sender, _withdraw);
+        require (withdrawn == true, "Couldn't withdraw the fund");
     } 
 
     /// @notice Function is called by members of the Governance withdraw claims from the insurnaceFee as a reward
@@ -214,9 +217,9 @@ contract Governance {
         require(block.timestamp >= member.newClaim, "You can't claim now");
         uint bal = member.Amount;
         uint feeClaimable= (bal * totalGovernanceFee) / totalDAOFund;
+        member.newClaim += block.timestamp + 30 days;
         bool claimed = withdraw(msg.sender, feeClaimable);
         require(claimed == true, "You couldn't claim fee");
-        member.newClaim += block.timestamp + 30 days;
 
     }
 

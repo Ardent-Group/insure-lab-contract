@@ -219,11 +219,11 @@ contract insure {
         uint _protocolfee = (profitClaimable * protocolFee) / 100;
         uint _governanceFee = (governanceFee * profitClaimable) / 100;
         uint profitSendable = profitClaimable - _protocolfee - _governanceFee;
+        Proto.RiskAsessors[msg.sender].totalCoverProvided = 0;
+        totalFeeGotten += _protocolfee;
         bool withdrawn = withdraw(msg.sender, profitSendable);
         require(withdrawn == true, "Couldn't perform the transaction");
         IGovernace(goveranceAddress).depositGovernanceFee(_governanceFee);
-        Proto.RiskAsessors[msg.sender].totalCoverProvided = 0;
-        totalFeeGotten += _protocolfee;
     }
 
 
@@ -250,12 +250,12 @@ contract insure {
         uint _totalCover = Proto.totalCover;
         uint _riskAssessorCover = Proto.RiskAsessors[msg.sender].totalCoverProvided;
         uint withdrawable = ( _riskAssessorCover * _totalCoverWithdrawable) / _totalCover;
-        bool withdrawn = withdraw(msg.sender, withdrawable);
-        require(withdrawn == true, "Couldn't withdraw cover provided");
         Proto.coverLeft -= withdrawable;
         Proto.totalCover -= withdrawable;
         Proto.RiskAsessors[msg.sender].totalCoverProvided -= withdrawable;
         Proto.RiskAsessors[msg.sender].lastWithdrawal += 30 days;
+        bool withdrawn = withdraw(msg.sender, withdrawable);
+        require(withdrawn == true, "Couldn't withdraw cover provided");
     }
 
     /// @dev This is a funcion used to set token address and can be called only by the admin
