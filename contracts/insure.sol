@@ -101,6 +101,7 @@ contract insure {
         Proto.protocolName = protocolName;
         Proto.domainName = protocolDomain;
         Proto.totalCover += totalCoverAmount;
+        Proto.coverLeft = totalCoverAmount;
         Proto.risklevel = _risklevel;
         Proto.firstRiskProvider = msg.sender;
         Proto.description = _description;
@@ -126,6 +127,7 @@ contract insure {
         require(deposited == true, "Deposit failed Insurance not created");
         Protocol storage Proto = AllProtocols[_id];
         Proto.totalCover += _coverAmount;
+        Proto.coverLeft += _coverAmount;
         Proto.RiskAsessors[msg.sender].totalCoverProvided += _coverAmount;
         Proto.RiskAsessors[msg.sender].initialCoverCreationDate = block.timestamp;
         emit AddOnExistingInsure(Proto.protocolName, Proto.domainName, _coverAmount, msg.sender, block.timestamp);
@@ -174,7 +176,7 @@ contract insure {
         Protocol storage Proto = AllProtocols[_id];
         uint date = Proto.UsersData[msg.sender].dateBought;
         require(date >= block.timestamp, "You can't claim cover, period over");
-        require( Proto.UsersData[msg.sender].requestedCover == false, "You can't request twice");
+        require(Proto.UsersData[msg.sender].requestedCover == false, "You can't request twice");
         uint _userCover = Proto.UsersData[msg.sender].totalCoverBought;
         IGovernace(goveranceAddress).requestCoverClaim(_userCover, _description, Proto.protocolName, Proto.firstRiskProvider, msg.sender, _id);
         Proto.UsersData[msg.sender].requestedCover = true;
@@ -344,7 +346,7 @@ contract insure {
         uint _coverPeriod,
         uint _coverAmount
      ) 
-        internal 
+        public 
         pure
         returns (uint cover)
     {
@@ -411,8 +413,7 @@ contract insure {
         require(_amount > 0, "Amount must be greater than zero");
     }
 
-  
-    
+
 
 
 }
