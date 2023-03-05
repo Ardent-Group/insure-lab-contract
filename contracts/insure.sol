@@ -66,6 +66,16 @@ contract insure {
         mapping ( address => RiskAsessor) RiskAsessors;
     }
 
+    struct ProtocolData {
+        uint totalCover;
+        uint coverLeft;
+        uint totalCoverPaid;
+        string protocolName;
+        string domainName;
+        string description;
+        RiskLevel risklevel;
+    }
+
     mapping (uint => Protocol) AllProtocols;
 
 
@@ -328,7 +338,30 @@ contract insure {
     {
          Protocol storage proto =  AllProtocols[_id];
          return (proto.ID, proto.totalCover, proto.coverLeft, proto.totalCoverPaid, proto.protocolName, proto.domainName, proto.description, proto.risklevel);
-    }  
+    }
+
+    /**
+     * @dev     . This is responsible for getting all protocol data
+     */
+    function getAllProtocolData() public view returns(ProtocolData[] memory protocolData){
+        protocolData = new ProtocolData[](id - 1);
+
+        for (uint256 i = 1; i < id; i++) {
+            Protocol storage proto = AllProtocols[i];
+            uint totalCover = proto.totalCover;
+            uint coverLeft = proto.coverLeft;
+            uint totalCoverPaid = proto.totalCoverPaid;
+            string memory protocolName = proto.protocolName;
+            string memory domainName = proto.domainName;
+            string memory description = proto.description;
+            RiskLevel risklevel = proto.risklevel;
+            
+
+            protocolData[i - 1] = ProtocolData(totalCover, coverLeft, totalCoverPaid, protocolName, domainName, description, risklevel);
+        }
+    }
+
+
 
 
     // ***************** //

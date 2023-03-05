@@ -242,17 +242,17 @@
   },
   "ast": {
     "absolutePath": "contracts/interfaces/IGovernance.sol",
-    "id": 2294,
+    "id": 2315,
     "exportedSymbols": {
       "IGovernace": [
-        2293
+        2314
       ]
     },
     "nodeType": "SourceUnit",
     "src": "40:482:3",
     "nodes": [
       {
-        "id": 2258,
+        "id": 2279,
         "nodeType": "PragmaDirective",
         "src": "40:23:3",
         "nodes": [],
@@ -264,12 +264,12 @@
         ]
       },
       {
-        "id": 2293,
+        "id": 2314,
         "nodeType": "ContractDefinition",
         "src": "65:457:3",
         "nodes": [
           {
-            "id": 2273,
+            "id": 2294,
             "nodeType": "FunctionDefinition",
             "src": "93:181:3",
             "nodes": [],
@@ -280,17 +280,17 @@
             "name": "requestCoverClaim",
             "nameLocation": "102:17:3",
             "parameters": {
-              "id": 2271,
+              "id": 2292,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2260,
+                  "id": 2281,
                   "mutability": "mutable",
                   "name": "_amountRequest",
                   "nameLocation": "126:14:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2273,
+                  "scope": 2294,
                   "src": "121:19:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -299,7 +299,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2259,
+                    "id": 2280,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "121:4:3",
@@ -312,12 +312,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 2262,
+                  "id": 2283,
                   "mutability": "mutable",
                   "name": "_description",
                   "nameLocation": "155:12:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2273,
+                  "scope": 2294,
                   "src": "141:26:3",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -326,7 +326,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 2261,
+                    "id": 2282,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "141:6:3",
@@ -339,12 +339,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 2264,
+                  "id": 2285,
                   "mutability": "mutable",
                   "name": "_protocolName",
                   "nameLocation": "182:13:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2273,
+                  "scope": 2294,
                   "src": "168:27:3",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -353,7 +353,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 2263,
+                    "id": 2284,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "168:6:3",
@@ -366,12 +366,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 2266,
+                  "id": 2287,
                   "mutability": "mutable",
                   "name": "_riskProvider",
                   "nameLocation": "205:13:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2273,
+                  "scope": 2294,
                   "src": "197:21:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -380,7 +380,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2265,
+                    "id": 2286,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "197:7:3",
@@ -394,12 +394,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 2268,
+                  "id": 2289,
                   "mutability": "mutable",
                   "name": "_claimerAddress",
                   "nameLocation": "229:15:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2273,
+                  "scope": 2294,
                   "src": "221:23:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -408,7 +408,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2267,
+                    "id": 2288,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "221:7:3",
@@ -422,12 +422,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 2270,
+                  "id": 2291,
                   "mutability": "mutable",
                   "name": "_insuranceID",
                   "nameLocation": "251:12:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2273,
+                  "scope": 2294,
                   "src": "246:17:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -436,7 +436,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2269,
+                    "id": 2290,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "246:4:3",
@@ -451,18 +451,18 @@
               "src": "120:145:3"
             },
             "returnParameters": {
-              "id": 2272,
+              "id": 2293,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "273:0:3"
             },
-            "scope": 2293,
+            "scope": 2314,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2278,
+            "id": 2299,
             "nodeType": "FunctionDefinition",
             "src": "279:64:3",
             "nodes": [],
@@ -473,17 +473,17 @@
             "name": "userWithdrawInsurance",
             "nameLocation": "288:21:3",
             "parameters": {
-              "id": 2276,
+              "id": 2297,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2275,
+                  "id": 2296,
                   "mutability": "mutable",
                   "name": "_idClaimRequests",
                   "nameLocation": "316:16:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2278,
+                  "scope": 2299,
                   "src": "311:21:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -492,7 +492,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2274,
+                    "id": 2295,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "311:4:3",
@@ -507,18 +507,18 @@
               "src": "310:23:3"
             },
             "returnParameters": {
-              "id": 2277,
+              "id": 2298,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "342:0:3"
             },
-            "scope": 2293,
+            "scope": 2314,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2287,
+            "id": 2308,
             "nodeType": "FunctionDefinition",
             "src": "348:113:3",
             "nodes": [],
@@ -529,17 +529,17 @@
             "name": "riskAssessorWithdrawInsurance",
             "nameLocation": "357:29:3",
             "parameters": {
-              "id": 2281,
+              "id": 2302,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2280,
+                  "id": 2301,
                   "mutability": "mutable",
                   "name": "_idClaimRequests",
                   "nameLocation": "393:16:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2287,
+                  "scope": 2308,
                   "src": "388:21:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -548,7 +548,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2279,
+                    "id": 2300,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "388:4:3",
@@ -563,17 +563,17 @@
               "src": "387:23:3"
             },
             "returnParameters": {
-              "id": 2286,
+              "id": 2307,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2283,
+                  "id": 2304,
                   "mutability": "mutable",
                   "name": "_insuranceID",
                   "nameLocation": "434:12:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2287,
+                  "scope": 2308,
                   "src": "429:17:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -582,7 +582,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2282,
+                    "id": 2303,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "429:4:3",
@@ -595,12 +595,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 2285,
+                  "id": 2306,
                   "mutability": "mutable",
                   "name": "refund",
                   "nameLocation": "453:6:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2287,
+                  "scope": 2308,
                   "src": "448:11:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -609,7 +609,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2284,
+                    "id": 2305,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "448:4:3",
@@ -623,13 +623,13 @@
               ],
               "src": "428:32:3"
             },
-            "scope": 2293,
+            "scope": 2314,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
-            "id": 2292,
+            "id": 2313,
             "nodeType": "FunctionDefinition",
             "src": "467:53:3",
             "nodes": [],
@@ -640,17 +640,17 @@
             "name": "depositGovernanceFee",
             "nameLocation": "476:20:3",
             "parameters": {
-              "id": 2290,
+              "id": 2311,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2289,
+                  "id": 2310,
                   "mutability": "mutable",
                   "name": "_amount",
                   "nameLocation": "503:7:3",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2292,
+                  "scope": 2313,
                   "src": "498:12:3",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -659,7 +659,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2288,
+                    "id": 2309,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "498:4:3",
@@ -674,12 +674,12 @@
               "src": "497:14:3"
             },
             "returnParameters": {
-              "id": 2291,
+              "id": 2312,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "519:0:3"
             },
-            "scope": 2293,
+            "scope": 2314,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
@@ -692,11 +692,11 @@
         "contractKind": "interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          2293
+          2314
         ],
         "name": "IGovernace",
         "nameLocation": "75:10:3",
-        "scope": 2294,
+        "scope": 2315,
         "usedErrors": []
       }
     ],

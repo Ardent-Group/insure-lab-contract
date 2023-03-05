@@ -2,7 +2,7 @@ import { ethers, run } from "hardhat";
 
 async function main() {
 
-   // ******Deploying the USDT contract ****//
+  //  // ******Deploying the USDT contract ****//
   //  const USDT = await ethers.getContractFactory("USDT");
   //  const usdt = await USDT.deploy();
  
@@ -16,9 +16,11 @@ async function main() {
 
   // console.log(`Insurance contract deployed to ${insure.address}`);
 
-  //  // ******Deploying the Governance contract ****// 
+   // ******Deploying the Governance contract ****// 
    const _minimumJoinDAO = BigInt(1e22)
    const _maximumJoinDAO = BigInt(1e23)
+
+   console.log(_minimumJoinDAO, _maximumJoinDAO, "dhsd")
   //  const Governance = await ethers.getContractFactory("Governance");
   //  const governance = await Governance.deploy(usdt.address, insure.address, _minimumJoinDAO, _maximumJoinDAO);
   //  await governance.deployed();
@@ -35,24 +37,24 @@ async function main() {
   // });
   // console.log(`Verified mocked USDT`);
 
-  console.log(`Verifying InsureLab Contract.....`);
-  await run("verify:verify", {
-    address: "0x06bF8c3D4B8fEa715D403693d532f5bF99C47ae3",
-    constructorArguments: [
-      "0x18d3BD3f2A9e1af0C2dF26a0f80E3af34abEe4F7"
-    ]
-  });
-  console.log(`Verified InsureLab Contract`);
-  console.log(`Verifying Governance contract......`)
-  await run("verify:verify", {
-    address: "0xA87F30B7CD469D65B08bb74f669821259AfD0e7d",
-    constructorArguments: [
-      "0x18d3BD3f2A9e1af0C2dF26a0f80E3af34abEe4F7",
-      "0x06bF8c3D4B8fEa715D403693d532f5bF99C47ae3",
-      _minimumJoinDAO,
-      _maximumJoinDAO,
-    ],
-  })
+  // console.log(`Verifying InsureLab Contract.....`);
+  // await run("verify:verify", {
+  //   address: insure.address,
+  //   constructorArguments: [
+  //     usdt.address
+  //   ]
+  // });
+  // console.log(`Verified InsureLab Contract`);
+  // console.log(`Verifying Governance contract......`)
+  // await run("verify:verify", {
+  //   address: governance.address,
+  //   constructorArguments: [
+  //     usdt.address,
+  //     insure.address,
+  //     _minimumJoinDAO,
+  //     _maximumJoinDAO,
+  //   ],
+  // })
   
 }
 
@@ -62,3 +64,7 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+// mUSDT = 0x86cDeb91758E251124f7CA152BfDd8a23B70d230
+// insureLab = 0x462C2CAC993D6F11658CD70A92B7C30398E944E6
+// governance = 0x4EC46c1c3BEaDf4621eB34B56F4b8734f115343F
