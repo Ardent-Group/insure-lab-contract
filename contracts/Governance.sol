@@ -39,6 +39,8 @@ contract Governance {
         bool joined;
         uint dateJoined;
         uint newClaim;
+        address memberAddress;
+        uint percentageLevel;
     }
 
 
@@ -97,6 +99,7 @@ contract Governance {
         require(deposited == true, "Deposit couldn't join DAO");
         members.Amount += _joinAmount;
         members.joined = true;
+        members.memberAddress = msg.sender;
         uint votingPower = votePower(_joinAmount) / 1e6;
         members.votePower = votingPower;
         AllMembers.push(members);
@@ -267,9 +270,14 @@ contract Governance {
     // VIEW FUNCTIONS
     // ***************** //
 
-    /// @dev This is an intenal function used to calculate the vote powe of the DAO members
+    /// @dev This is an intenal function used to calculate the vote power of the DAO members
     function votePower (uint bal) internal view returns (uint power) {
         power = (bal * 1e6)/joinDAOMinimum;
+    }
+
+    function DaoMemberPercentage(uint _amount) internal view returns(uint dmp) {
+        uint contractBal = IERC20(tokenAddress).balanceOf(address(this));
+        dmp = (_amount)/(contractBal + _amount);
     }
 
     /// @dev Used to check the if the DAO member has voted for a particular claim
