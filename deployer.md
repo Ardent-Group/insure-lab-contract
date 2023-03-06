@@ -1,3 +1,3 @@
-#### USDT Deployed Contract address -> 0x18d3BD3f2A9e1af0C2dF26a0f80E3af34abEe4F7
-#### Insurance Deployed Contract address -> 0x06bF8c3D4B8fEa715D403693d532f5bF99C47ae3
-#### Governance Deployed Contract address -> 0xA87F30B7CD469D65B08bb74f669821259AfD0e7d
+#### mUSDT Deployed Contract address -> 0xE8377ef90628B7f03b440bd2c18956fDAFA355D9
+#### Insurance Deployed Contract address -> 0x8045D17C25568f8Ea1cCa286d88926bB2A957b99
+#### Governance Deployed Contract address -> 0xD287cc4B99cA787c0d7F949deD9961531aEda71E
